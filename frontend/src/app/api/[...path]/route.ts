@@ -25,7 +25,15 @@ async function proxyRequest(
   const responseHeaders = new Headers();
 
   response.headers.forEach((value, key) => {
-    if (key.toLowerCase() !== "set-cookie") {
+    const normalizedKey = key.toLowerCase();
+
+    if (
+      normalizedKey !== "set-cookie" &&
+      normalizedKey !== "content-length" &&
+      normalizedKey !== "content-encoding" &&
+      normalizedKey !== "transfer-encoding" &&
+      normalizedKey !== "connection"
+    ) {
       responseHeaders.set(key, value);
     }
   });
