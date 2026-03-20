@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getSession } from "@/lib/session";
+import { LoadingLink } from "@/components/loading-link";
 import { LogoutButton } from "@/components/logout-button";
 
 export default async function ProtectedLayout({
@@ -15,14 +15,14 @@ export default async function ProtectedLayout({
     <div className="portal-shell">
       <aside className="portal-sidebar">
         <div>
-          <span className="eyebrow">Neo Fala Amazônia</span>
-          <h1>Comunicação Interna</h1>
+          <span className="eyebrow">Neo Fala Amazonia</span>
+          <h1>Comunicacao Interna</h1>
           <p className="subtle">{session.name}</p>
         </div>
 
         <nav className="sidebar-nav">
-          <Link href="/setores">Setores</Link>
-          {canAccessAdmin ? <Link href="/admin">Painel administrativo</Link> : null}
+          <LoadingLink href="/setores">Setores</LoadingLink>
+          {canAccessAdmin ? <LoadingLink href="/admin">Painel administrativo</LoadingLink> : null}
         </nav>
 
         <LogoutButton />

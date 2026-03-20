@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { browserApiFetch } from "@/lib/api";
+import { useAppLoading } from "@/components/loading-provider";
 
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  const { startLoading, stopLoading } = useAppLoading();
 
   async function handleSubmit(formData: FormData) {
     setError(null);
     setIsPending(true);
+    startLoading("Entrando...");
 
     const payload = {
       email: String(formData.get("email") ?? ""),
@@ -25,6 +28,7 @@ export function LoginForm() {
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Nao foi possivel entrar.");
       setIsPending(false);
+      stopLoading();
     }
   }
 

@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { apiFetch } from "@/lib/server-api";
 import { IconMap } from "@/components/icon-map";
+import { LoadingLink } from "@/components/loading-link";
 import type { Category, Sector } from "@/lib/types";
 
 interface SectorMenuResponse {
@@ -19,10 +19,10 @@ export default async function SectorPage({
 
   return (
     <section className="stack-lg">
-      <Link href="/setores" className="back-link">
+      <LoadingLink href="/setores" className="back-link">
         <ArrowLeft size={18} />
         Voltar
-      </Link>
+      </LoadingLink>
 
       <header className="hero-panel">
         <div>
@@ -30,13 +30,13 @@ export default async function SectorPage({
           <h2>{response.sector.name}</h2>
         </div>
         <p className="subtle">
-          O menu é parametrizado por setor e controlado pelo painel administrativo.
+          O menu e parametrizado por setor e controlado pelo painel administrativo.
         </p>
       </header>
 
       <div className="grid-panels category-grid">
         {response.categories.map((category) => (
-          <Link
+          <LoadingLink
             key={category.id}
             href={`/setores/${slug}/categorias/${category.id}`}
             className="category-card"
@@ -44,9 +44,9 @@ export default async function SectorPage({
             <IconMap name={category.icon} className="category-icon" />
             <div>
               <strong>{category.name}</strong>
-              <p>{category.description ?? "Acesse conteúdos, documentos ou canal de contato."}</p>
+              <p>{category.description ?? "Acesse conteudos, documentos ou canal de contato."}</p>
             </div>
-          </Link>
+          </LoadingLink>
         ))}
       </div>
     </section>

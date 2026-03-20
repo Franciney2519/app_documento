@@ -1,17 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { browserApiFetch } from "@/lib/api";
+import { useAppLoading } from "@/components/loading-provider";
 
 export function LogoutButton() {
-  const router = useRouter();
+  const { startLoading, stopLoading } = useAppLoading();
 
   async function handleLogout() {
-    await browserApiFetch("/auth/logout", {
-      method: "POST"
-    });
-    router.push("/");
-    router.refresh();
+    startLoading("Saindo...");
+
+    try {
+      await browserApiFetch("/auth/logout", {
+        method: "POST"
+      });
+      window.location.assign("/");
+    } catch {
+      stopLoading();
+    }
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { browserApiFetch, publicApiUrl } from "@/lib/api";
+import { useAppLoading } from "@/components/loading-provider";
 import type { AdminRole, AdminUser, AuditLog, Category, DocumentRecord, Sector } from "@/lib/types";
 
 interface AdminPanelProps {
@@ -25,6 +26,7 @@ export function AdminPanel({
   const [documents, setDocuments] = useState(initialDocuments);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { startLoading, stopLoading } = useAppLoading();
 
   const rootCategories = useMemo(
     () => categories.filter((category) => !category.parentId),
@@ -35,6 +37,7 @@ export function AdminPanel({
     setMessage(null);
     const roleIds = formData.getAll("roleIds").map(String);
     const sectorIds = formData.getAll("sectorIds").map(String);
+    startLoading("Salvando...");
 
     startTransition(async () => {
       try {
@@ -50,15 +53,18 @@ export function AdminPanel({
           })
         });
         setUsers((current) => [response.user, ...current]);
-        setMessage("Usuário criado com sucesso.");
+        setMessage("Usuario criado com sucesso.");
       } catch (caught) {
-        setMessage(caught instanceof Error ? caught.message : "Falha ao criar usuário.");
+        setMessage(caught instanceof Error ? caught.message : "Falha ao criar usuario.");
+      } finally {
+        stopLoading();
       }
     });
   }
 
   async function uploadDocument(formData: FormData) {
     setMessage(null);
+    startLoading("Enviando...");
 
     startTransition(async () => {
       try {
@@ -70,12 +76,15 @@ export function AdminPanel({
         setMessage("Documento salvo com sucesso.");
       } catch (caught) {
         setMessage(caught instanceof Error ? caught.message : "Falha ao salvar documento.");
+      } finally {
+        stopLoading();
       }
     });
   }
 
   async function changeUserStatus(id: string, status: "ACTIVE" | "INACTIVE" | "BLOCKED") {
     setMessage(null);
+    startLoading("Atualizando...");
 
     startTransition(async () => {
       try {
@@ -96,9 +105,11 @@ export function AdminPanel({
         setUsers((current) =>
           current.map((user) => (user.id === id ? { ...user, status } : user))
         );
-        setMessage("Status do usuário atualizado.");
+        setMessage("Status do usuario atualizado.");
       } catch (caught) {
         setMessage(caught instanceof Error ? caught.message : "Falha ao atualizar status.");
+      } finally {
+        stopLoading();
       }
     });
   }
@@ -108,10 +119,10 @@ export function AdminPanel({
       <section className="hero-panel">
         <div>
           <span className="eyebrow">Painel administrativo</span>
-          <h2>Governança de acesso, conteúdo e rastreabilidade.</h2>
+          <h2>Governanca de acesso, conteudo e rastreabilidade.</h2>
         </div>
         <p className="subtle">
-          O MVP já entrega gestão de usuários, upload documental, workflow inicial e leitura de auditoria.
+          O MVP ja entrega gestao de usuarios, upload documental, workflow inicial e leitura de auditoria.
         </p>
       </section>
 
@@ -119,7 +130,7 @@ export function AdminPanel({
 
       <section className="grid-panels admin-grid">
         <article className="panel">
-          <h3>Novo usuário</h3>
+          <h3>Novo usuario</h3>
           <form action={createUser} className="stack-sm">
             <input name="name" placeholder="Nome completo" required />
             <input name="email" type="email" placeholder="email@empresa.com" required />
@@ -153,7 +164,7 @@ export function AdminPanel({
             </label>
 
             <button className="primary-button" type="submit" disabled={isPending}>
-              {isPending ? "Salvando..." : "Cadastrar usuário"}
+              {isPending ? "Salvando..." : "Cadastrar usuario"}
             </button>
           </form>
         </article>
@@ -161,14 +172,14 @@ export function AdminPanel({
         <article className="panel">
           <h3>Novo documento</h3>
           <form action={uploadDocument} className="stack-sm">
-            <input name="title" placeholder="Título do documento" required />
-            <input name="code" placeholder="Código do documento" />
+            <input name="title" placeholder="Titulo do documento" required />
+            <input name="code" placeholder="Codigo do documento" />
             <select name="documentType" defaultValue="PROCEDURE">
-              <option value="POLICY">Política</option>
+              <option value="POLICY">Politica</option>
               <option value="INTERNAL_STANDARD">Norma interna</option>
               <option value="EXTERNAL_STANDARD">Norma externa</option>
               <option value="PROCEDURE">Procedimento</option>
-              <option value="WORK_INSTRUCTION">Instrução de trabalho</option>
+              <option value="WORK_INSTRUCTION">Instrucao de trabalho</option>
               <option value="CHECKLIST">Checklist</option>
               <option value="SUPPORT_MATERIAL">Material de apoio</option>
               <option value="EXTERNAL_DOCUMENT">Documento externo</option>
@@ -190,12 +201,12 @@ export function AdminPanel({
               ))}
             </select>
             <textarea name="description" placeholder="Resumo do documento" rows={4} />
-            <input name="keywords" placeholder="Palavras-chave separadas por vírgula" />
+            <input name="keywords" placeholder="Palavras-chave separadas por virgula" />
             <input name="effectiveDate" type="date" />
             <input name="reviewDate" type="date" />
             <select name="status" defaultValue="DRAFT">
               <option value="DRAFT">Rascunho</option>
-              <option value="IN_REVIEW">Em revisão</option>
+              <option value="IN_REVIEW">Em revisao</option>
               <option value="APPROVED">Aprovado</option>
               <option value="PUBLISHED">Publicado</option>
               <option value="ARCHIVED">Arquivado</option>
@@ -210,7 +221,7 @@ export function AdminPanel({
 
       <section className="panel">
         <div className="section-header">
-          <h3>Usuários</h3>
+          <h3>Usuarios</h3>
           <span>{users.length} registros</span>
         </div>
         <div className="table-grid">
@@ -274,7 +285,7 @@ export function AdminPanel({
       <section className="panel">
         <div className="section-header">
           <h3>Auditoria recente</h3>
-          <span>Últimos {logs.length} eventos</span>
+          <span>Ultimos {logs.length} eventos</span>
         </div>
         <div className="table-grid">
           {logs.map((log) => (

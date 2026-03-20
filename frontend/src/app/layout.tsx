@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Archivo } from "next/font/google";
+import { LoadingProvider } from "@/components/loading-provider";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -20,7 +21,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${manrope.variable} ${archivo.variable}`}>{children}</body>
+      <body className={`${manrope.variable} ${archivo.variable}`}>
+        <LoadingProvider>{children}</LoadingProvider>
+      </body>
     </html>
   );
 }

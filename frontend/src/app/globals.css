@@ -391,6 +391,61 @@ textarea {
   text-align: center;
 }
 
+.app-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 26, 35, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+.app-loading-card {
+  min-width: min(320px, calc(100vw - 2rem));
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: var(--shadow);
+}
+
+.app-loading-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 3px solid rgba(12, 90, 115, 0.18);
+  border-top-color: var(--primary);
+  animation: app-spin 0.9s linear infinite;
+}
+
+.app-loading-title {
+  font-weight: 800;
+}
+
+.app-loading-subtle {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+body[data-loading="true"] {
+  cursor: progress;
+}
+
+body[data-loading="true"] button,
+body[data-loading="true"] a {
+  pointer-events: none;
+}
+
+@keyframes app-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 960px) {
   .auth-page,
   .portal-shell {
