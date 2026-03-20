@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum CategoryKind {
+  DOCUMENT_LIBRARY
+  SUPPORT_CHANNEL
+  CHECKLIST_HUB
+}
+
+enum DocumentType {
+  POLICY
+  INTERNAL_STANDARD
+  EXTERNAL_STANDARD
+  PROCEDURE
+  WORK_INSTRUCTION
+  CHECKLIST
+  SUPPORT_MATERIAL
+  EXTERNAL_DOCUMENT
+}
+
+enum DocumentStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum DocumentVisibility {
+  SECTOR
+  RESTRICTED
+  PUBLIC_INTERNAL
+}
+
+model User {
+  id             String             @id @default(cuid())
+  name           String
+  email          String             @unique
+  passwordHash   String
+  status         UserStatus         @default(ACTIVE)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  lastLoginAt    DateTime?
+  roles          UserRole[]
+  sectors        UserSector[]
+  ownedDocuments Document[]         @relation("DocumentOwner")
+  approvals      DocumentApproval[]
+  versions       DocumentVersion[]  @relation("VersionCreatedBy")
+  auditLogs      AuditLog[]
+  configs        PortalConfig[]     @relation("ConfigUpdatedBy")
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  module      String
+  action      String
+  description String?
+  roles       RolePermission[]
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model Sector {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  description String?
+  sortOrder   Int              @default(0)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       UserSector[]
+  documents   Document[]
+  categories  SectorCategory[]
+}
+
+model UserSector {
+  userId   String
+  sectorId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sector   Sector @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@id([userId, sectorId])
+}
+
+model Category {
+  id                String           @id @default(cuid())
+  name              String
+  slug              String
+  description       String?
+  icon              String?
+  kind              CategoryKind     @default(DOCUMENT_LIBRARY)
+  sortOrder         Int              @default(0)
+  isActive          Boolean          @default(true)
+  parentId          String?
+  parent            Category?        @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children          Category[]       @relation("CategoryHierarchy")
+  sectorBindings    SectorCategory[]
+  documents         Document[]       @relation("DocumentCategory")
+  subcategoryDocs   Document[]       @relation("DocumentSubcategory")
+
+  @@unique([slug, parentId])
+}
+
+model SectorCategory {
+  sectorId   String
+  categoryId String
+  sortOrder  Int      @default(0)
+  isVisible  Boolean  @default(true)
+  sector     Sector   @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([sectorId, categoryId])
+}
+
+model Document {
+  id              String             @id @default(cuid())
+  title           String
+  code            String?
+  documentType    DocumentType
+  description     String?
+  versionLabel    String             @default("1.0")
+  versionNumber   Int                @default(1)
+  publicationDate DateTime?
+  reviewDate      DateTime?
+  effectiveDate   DateTime?
+  status          DocumentStatus     @default(DRAFT)
+  visibility      DocumentVisibility @default(SECTOR)
+  keywords        String[]
+  filePath        String?
+  fileName        String?
+  mimeType        String?
+  fileSize        Int?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  archivedAt      DateTime?
+  sectorId        String
+  categoryId      String
+  subcategoryId   String?
+  ownerId         String
+  sector          Sector             @relation(fields: [sectorId], references: [id])
+  category        Category           @relation("DocumentCategory", fields: [categoryId], references: [id])
+  subcategory     Category?          @relation("DocumentSubcategory", fields: [subcategoryId], references: [id])
+  owner           User               @relation("DocumentOwner", fields: [ownerId], references: [id])
+  versions        DocumentVersion[]
+  approvals       DocumentApproval[]
+
+  @@index([sectorId, categoryId, status])
+}
+
+model DocumentVersion {
+  id            String   @id @default(cuid())
+  documentId    String
+  versionLabel  String
+  versionNumber Int
+  filePath      String?
+  fileName      String?
+  mimeType      String?
+  fileSize      Int?
+  changeSummary String?
+  snapshot      Json?
+  createdAt     DateTime @default(now())
+  createdById   String
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdBy     User     @relation("VersionCreatedBy", fields: [createdById], references: [id])
+}
+
+model DocumentApproval {
+  id         String         @id @default(cuid())
+  documentId String
+  fromStatus DocumentStatus
+  toStatus   DocumentStatus
+  comment    String?
+  actedAt    DateTime       @default(now())
+  actedById  String
+  document   Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  actedBy    User           @relation(fields: [actedById], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  occurredAt DateTime @default(now())
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([action, entityType, occurredAt])
+}
+
+model PortalConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+  updatedBy   User?    @relation("ConfigUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+}
