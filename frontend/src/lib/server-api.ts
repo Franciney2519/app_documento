@@ -1,10 +1,16 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { ApiError, publicApiUrl } from "./api";
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const cookieStore = await cookies();
-  const response = await fetch(`${publicApiUrl}${path}`, {
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "localhost:3000";
+  const protocol = headerStore.get("x-forwarded-proto") ?? "http";
+  const baseUrl = publicApiUrl.startsWith("http") ? publicApiUrl : new URL(publicApiUrl, `${protocol}://${host}`).toString();
+
+  const response = await fetch(`${baseUrl}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",

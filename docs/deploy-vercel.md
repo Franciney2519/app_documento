@@ -25,7 +25,7 @@ npm run prisma:seed
 Variaveis recomendadas:
 
 ```env
-DATABASE_URL=postgres://postgres.[PROJECT-REF]:[PASSWORD]@[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true
+DATABASE_URL=postgres://postgres.[PROJECT-REF]:[PASSWORD]@[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
 JWT_SECRET=troque-por-um-segredo-forte
 APP_URL=https://seu-frontend.vercel.app
 API_URL=https://sua-api.vercel.app
@@ -38,6 +38,7 @@ UPLOAD_DIR=/tmp/uploads
 Observacoes:
 
 - Para Vercel, prefira a connection string do Supabase em transaction mode (`6543`) por ser ambiente serverless.
+- Com Prisma em serverless, use `pgbouncer=true&connection_limit=1`.
 - `UPLOAD_DIR=/tmp/uploads` serve apenas para teste. Arquivos enviados nao sao persistentes entre execucoes da funcao.
 - Para uso real, mova uploads para Supabase Storage ou S3.
 
@@ -49,8 +50,12 @@ Observacoes:
 Variavel necessaria:
 
 ```env
-NEXT_PUBLIC_API_URL=https://sua-api.vercel.app
+BACKEND_API_URL=https://sua-api.vercel.app
 ```
+
+Observacao:
+
+- O frontend usa um proxy interno em `/api` para manter a sessao no mesmo dominio do app. Por isso, na Vercel o valor necessario no frontend e `BACKEND_API_URL`, nao a URL publica diretamente no navegador.
 
 ## Ordem sugerida
 
