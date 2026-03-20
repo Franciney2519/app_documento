@@ -22,7 +22,17 @@ async function proxyRequest(
     redirect: "manual"
   });
 
-  const responseHeaders = new Headers(response.headers);
+  const responseHeaders = new Headers();
+
+  response.headers.forEach((value, key) => {
+    if (key.toLowerCase() !== "set-cookie") {
+      responseHeaders.set(key, value);
+    }
+  });
+
+  for (const cookie of response.headers.getSetCookie()) {
+    responseHeaders.append("set-cookie", cookie);
+  }
 
   return new Response(response.body, {
     status: response.status,
