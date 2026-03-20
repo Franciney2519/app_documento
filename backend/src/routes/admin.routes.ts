@@ -250,7 +250,15 @@ adminRouter.get("/sectors", requirePermission("sectors.view"), async (_request, 
 
 adminRouter.post("/sectors", requirePermission("sectors.create"), async (request, response) => {
   const data = sectorSchema.parse(request.body);
-  const sector = await prisma.sector.create({ data });
+  const createData: Prisma.SectorCreateInput = {
+    name: data.name,
+    slug: data.slug,
+    description: data.description,
+    sortOrder: data.sortOrder,
+    isActive: data.isActive
+  };
+
+  const sector = await prisma.sector.create({ data: createData });
   await logAudit(request, {
     action: "sectors.create",
     entityType: "Sector",
@@ -262,9 +270,17 @@ adminRouter.post("/sectors", requirePermission("sectors.create"), async (request
 adminRouter.patch("/sectors/:id", requirePermission("sectors.edit"), async (request, response) => {
   const data = sectorSchema.partial().parse(request.body);
   const sectorId = String(request.params.id);
+  const updateData: Prisma.SectorUpdateInput = {
+    ...(data.name !== undefined ? { name: data.name } : {}),
+    ...(data.slug !== undefined ? { slug: data.slug } : {}),
+    ...(data.description !== undefined ? { description: data.description } : {}),
+    ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
+    ...(data.isActive !== undefined ? { isActive: data.isActive } : {})
+  };
+
   const sector = await prisma.sector.update({
     where: { id: sectorId },
-    data
+    data: updateData
   });
   await logAudit(request, {
     action: "sectors.update",
