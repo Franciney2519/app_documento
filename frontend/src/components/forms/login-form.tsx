@@ -1,34 +1,31 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { browserApiFetch } from "@/lib/api";
 
 export function LoginForm() {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
+    setIsPending(true);
 
     const payload = {
       email: String(formData.get("email") ?? ""),
       password: String(formData.get("password") ?? "")
     };
 
-    startTransition(async () => {
-      try {
-        await browserApiFetch("/auth/login", {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-        router.push("/setores");
-        router.refresh();
-      } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Nao foi possivel entrar.");
-      }
-    });
+    try {
+      await browserApiFetch("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      window.location.assign("/setores");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Nao foi possivel entrar.");
+      setIsPending(false);
+    }
   }
 
   return (
