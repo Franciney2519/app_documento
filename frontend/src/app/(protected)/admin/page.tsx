@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { AdminPanel } from "@/components/admin/admin-panel";
+import { LoadingLink } from "@/components/loading-link";
 import { apiFetch } from "@/lib/server-api";
 import { getSession } from "@/lib/session";
 import type { AdminRole, AdminUser, AuditLog, Category, DocumentRecord, Sector } from "@/lib/types";
@@ -24,13 +26,20 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <AdminPanel
-      users={users.users}
-      roles={roles.roles}
-      sectors={sectors.sectors}
-      categories={categories.categories}
-      documents={documents.documents}
-      logs={logs.logs}
-    />
+    <section className="stack-lg">
+      <LoadingLink href="/setores" className="back-link">
+        <ArrowLeft size={18} />
+        Voltar para setores
+      </LoadingLink>
+
+      <AdminPanel
+        users={users.users}
+        roles={roles.roles}
+        sectors={sectors.sectors}
+        categories={categories.categories}
+        documents={documents.documents}
+        logs={logs.logs}
+      />
+    </section>
   );
 }
